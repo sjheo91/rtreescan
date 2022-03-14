@@ -1,0 +1,24 @@
+Package: rtreescan
+Title: Analysis of the Tree-Based Scan Statistic with TreeScan
+Description: The rtreescan allows TreeScan™ to operate in an R environment. This package provides functions for writing R data frames in TreeScan-readable formats, for setting TreeScan parameters, for running TreeScan in the OS, and for reading the files that TreeScan creates.
+Version: 0.1.0
+URL: http://www.treescan.org
+Date: 2021-02-05
+Authors@R: c(
+    person("Sohee", "Jeong", email = "soheehi@yonsei.ac.kr", role = c("aut", "cre")),
+    person("Sujee", "Lee", email = "LEEVERDA@yuhs.ac", role = "aut"),
+    person("Inkyung", "Jung", email = "IJUNG@yuhs.ac", role = "aut"))
+Depends: R (>= 3.5.0)
+Imports: utils, foreign, data.tree, DiagrammeR, dplyr, rmarkdown
+Suggests: knitr
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.2
+VignetteBuilder: knitr
+NeedsCompilation: no
+Packaged: 2021-07-05 16:23:33 UTC; sohee
+Author: Sohee Jeong [aut, cre],
+  Sujee Lee [aut],
+  Inkyung Jung [aut]
+Maintainer: Sohee Jeong <soheehi@yonsei.ac.kr>

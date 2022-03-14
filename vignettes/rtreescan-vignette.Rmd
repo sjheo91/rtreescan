@@ -1,0 +1,284 @@
+---
+title: "<center> rtreescan </center>"
+author: "<center> *Sohee Jeong, Sujee Lee and Inkyung Jung* </center>" 
+date: "<center>`r Sys.Date()`</center>"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{<center> rtreescan </center>}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+  
+```{r "setup", include=FALSE}
+knitr::opts_knit$set(root.dir = getwd())  # with something else than `getwd()`
+```
+
+**TreeScan**  is a data mining software that allows users to analyze large datasets using various versions of the tree-based scan statistic. This method scans both all individual cells and groups of closely related cells to find excess risk. It is mainly used to detect potential adverse events after taking marketed drugs and vaccines. In addition, this method can be applied to any data if the independent variable has a hierarchical structure. 
+  
+**rtreescan** allows TreeScan to operate in an R environment, making it convenient and flexible. The functions in the package can be grouped into three main parts: parameter functions that set parameters for TreeScan or write them in a file to OS; execution functions that run TreeScan in OS and generate output files; plotting functions that visualize analysis results. For accurate analysis, it is necessary to understand parameter files by referring to the TreeScan manual. <br/>
+  
+This package is operated only with TreeScan. It is not open-source, but it is distributed free of charge. Users can download the software for free from the link. &lt;<https://www.treescan.org>&gt;<br/><br/>
+  
+  
+```{r, message=FALSE}
+library("rtreescan")
+library("data.tree")
+```
+
+**Basic usage of the package:**<br/>
+
+1. Set the TreeScan parameters using `ts.options()`; these parameters are saved in R
+2. Write the TreeScan case, tree and parameter file using `write.cas()`, `write.tre()` and `write.ts.prm()`
+3. Run TreeScan using `tbss()`
+4. Use `makeSignaltree()` to visualize results from TreeScan
+<br/>
+
+```{r, echo = FALSE}
+# environmental variable
+tsenv <- new.env()
+tsenv$.ts.params <- prm
+tsenv$.ts.params.defaults <- prm
+
+# loading case and tree files
+data(Berncas, package = "rtreescan")
+data(Poiscas, package = "rtreescan")
+data(TreeTempcas, package = "rtreescan")
+data(tree, package = "rtreescan")
+
+# loading prm files
+data(Bernprm, package = "rtreescan")
+data(Poisprm, package = "rtreescan")
+data(TreeTempprm, package = "rtreescan")
+
+# setting working directory
+loc <- getwd()
+setwd(loc)
+```
+*** 
+## Example data
+This section describes the analysis procedures for the 3 situations below.<br/>
+
+1. Parameter file available : Use `tbss()` for Poisson data <br/>
+2. Parameter file **NOT** available : Use `tbss()` for Bernoulli data <br/>
+3. Parameter file **NOT** available : Set detailed options manually for Tree-Temporal data <br/>
+
+Example data are automatically downloaded to the user's computer together with TreeScan. It consists of 3 kinds of data: Poisson, Bernoulli, TreeTemporal. They share one tree file. </br>
+```{r}
+head(tree)
+```
+
+### 1. Poisson tree-based scan statistic : Parameter file available
+Poisson model is used for modeling count data, such as number of births, number of disease occurrences, and so on. Each row contains the number of cases and population on a node. </br>
+```{r}
+head(Poiscas)
+```
+In the `tbss(prmstatus, location, filename)`, enter the location and name of the parameter file.
+```{r, eval = FALSE}
+# If a parameter file is available, set the prmstatus options to 'y'. 
+tbss(prmstatus = "y", location = loc, filename = "Poisson")
+```
+The result can also be seen in R if the option "results-csv"="y" is set in the parameter file. <br/>
+```{r, eval = TRUE}
+result <- tbss(prmstatus = "y", location = loc, filename = "Poisson")
+result$csv
+```
+To visualize the results, pre-create the entire tree structure using `maketree()`. Then you can also use the `makeSignaltree()` to create a tree structure in which the signals are captured.  
+```{r, fig.width=7, message = FALSE}
+entiretree <- maketree(tree)
+plot(entiretree)
+
+signaltree <- makeSignaltree(result, entiretree, pv = 0.1, onlysignal = FALSE)
+plot(signaltree)
+
+onlysignaltree <- makeSignaltree(result, entiretree, pv = 0.1, onlysignal = TRUE)
+plot(onlysignaltree)
+```
+<br/>
+If the onlysignal option is set to **FALSE**, it shows the entire tree where the signal is captured, and if set to **TRUE**, it only shows where the signal is captured (default = FALSE). Users can also set the desired p-value level using the pv option. In this example, the p-value level is set to 0.1.</br></br>  
+
+### 2. Bernoulli tree-based scan statistic : Parameter file not available
+Bernoulli model is used for binary data, including disease status, exposure status, etc. Each row contains the number of cases and controls on a node.
+```{r}
+head(Berncas)
+```
+Detailed options, including scan methods and probability models, can be checked and set based on the information in `ts.options()`.<br/>
+```{r}
+# Check the currently set options.
+head(ts.options())
+```
+<br/>
+
+| Model | Self-control design | Save |
+| :--: | :--: | :--: |
+| Unconditional Bernoulli model | Yes | csv |
+
+```{r, eval=FALSE}
+# Set options as specified above.
+ts.options(list("scan-type"=0, "probablity-model"=1, "self-control-design"="y", "result-csv"="y"))
+```
+Using `tbss()`, users can easily perform analysis without creating parameter files themselves. 
+```{r, eval = FALSE}
+# run tbss funtion
+tbss(location = loc, filename = "Bernoulli", cas = Berncas, tre = tree, conditional = 0, model = 1, self = "y", csv = "y")
+```
+In `tbss(location, filename, cas, tre, scan, model, conditional, csv, html)`, enter the path for the TreeScan-readable files(.cas, .tre), parameter file name, and options related to model setting and saving results.</br>
+For more information on options, see Appendix 1 (in this document) or TreeScan guideline.<br/>
+
+```{r, echo = FALSE}
+result <- tbss(prmstatus = "y", location = loc, filename="Bernoulli")
+```
+```{r, fig.width=7, message = FALSE}
+signaltree <- makeSignaltree(result, entiretree, pv = 0.1, onlysignal = FALSE)
+plot(signaltree)
+```
+To visualize the detected signals, the treescan result and the entire tree structure object were used as inputs.
+
+### 3. Tree-Temporal Scan Statistic : Parameter file not available
+Tree-Temporal Scan Statistic identifys how cases are distributed over time in a tree. It is commonly used in vaccine studies where vaccination times are precisely defined.
+Each row contains the number of cases and the time of cases on a node. 
+```{r}
+head(TreeTempcas)
+```
+
+| Model | Time<br/> Study period (Start, End range) | Save |
+| :--: | :--: | :--: | 
+| Conditional tree-temporal scan statistic  | 1 ~ 28 (1 ~ 14, 1 ~ 21) |  csv, html |
+
+In case that detailed option settings are required, the following procedure can be a guide to users.
+```{r, eval = FALSE}
+# Set working directory
+loc <- "C:/Users/Desktop"
+
+# Write cas and tre files in a TreeScan-readable format
+write.cas(TreeTempcas, loc, "TreeTemporal")
+write.tre(tree, loc, "TreeTemporal")
+
+# Reset options to default pararmeter values
+invisible(ts.options(reset = TRUE)) #invisible: not print the return
+
+# Set TreeScan parameters that the user wants 
+ts.options(list("tree-filename"="TreeTemporal.tre", "count-filename"="TreeTemporal.cas"))
+ts.options(list("scan-type"=1, "probability-model"=2, "conditional-type"=3))
+ts.options(list("window-start-range"="[1,14]", "window-end-range"="[1,21]", "data-time-range"="[1,28]"))
+ts.options(list("apply-risk-window-restriction"='y'))
+ts.options(list("results-csv"="y", "results-html"="y"))
+
+# write new parameter file with options set above
+write.ts.prm(loc, "TreeTemporal")
+
+# run TreeScan in the OS
+result <- treescan(loc, "TreeTemporal")
+```
+
+The above code can be written simply as below.
+```{r, eval = FALSE}
+tbss(location = loc, filename = "TreeTemporal", cas = TreeTempcas, tre = tree, scan = 1, model = 2, conditional = 3, start = "[1,14]", end = "[1,21]", period = "[1,28]", csv = "y")
+```
+In `tbss(location, cas, tre, filename, scan, model, conditional, start-range, end-range, study-period, csv, html)`, enter the storage location for the TreeScan-readable files(.cas, .tre), parameter file name, and options related to model setting and saving results.</br>
+For more information on options, see Appendix 1 (in this document) or TreeScan guideline.<br/>
+```{r, fig.width=7, message = FALSE}
+signaltree <- makeSignaltree(result, entiretree, pv = 0.1, onlysignal = FALSE)
+plot(signaltree)
+```
+To visualize the detected signals, the treescan result and the entire tree structure object were used as inputs.
+
+## Simulated data: Pharmacovigilance data set
+**The Korea Adverse Events Reporting System (KAERS)** database is designed that can report and manage information about unusual cases after taking medicine and medical supplies. Adverse events information in the KAERS is coded as WHO Adverse Reactions Terminology (WHO-ART), a medical dictionary for internationally standardized classification. It has a 4 level hierarchical structure that begins with the human organ system.  
+
+* SOC: System-organ classesbody organ groups  
+* HT: High level terms for grouping preferred terms  
+* PT: Preferred terms principal terms for describing adverse reactions  
+* IPP: Included terms synonyms to preferred terms  
+
+We have extracted a small tree with 14 leaves from all the reported leaves from the database and considered the 3-stage (PT, HT, SOC) hierarchy. In addition, the number of cases is simulated with different values while maintaining a pattern of true values reported for each leaf.
+
+```{r}
+data(PVcas, package = "rtreescan")
+data(PVtre, package = "rtreescan")
+```
+```{r}
+```
+
+```{r}
+head(PVcas)
+head(PVtre)
+```
+
+```{r}
+# write cas and tre files in a TreeScan-readable format
+write.cas(PVcas, loc, "PV")
+write.tre(PVtre, loc, "PV")
+
+invisible(ts.options(reset = TRUE)) #invisible: not print the return
+
+# set TreeScan parameters
+ts.options(list("tree-filename" = "PV.tre", "count-filename" = "PV.cas"))
+ts.options(list("probability-model"= 1, "conditional-type" = 0, "self-control-design"='y'))
+ts.options(list("apply-risk-window-restriction"='y'))
+ts.options(list("results-csv"='y'))
+
+# write parameter file
+write.ts.prm(loc, "PV")
+
+# run TreeScan in the OS
+result <- tbss(prmstatus="y", location=loc, filename = "PV")
+```
+
+```{r, fig.width=7, message = FALSE}
+entiretree <- maketree(PVtre)
+
+signaltree <- makeSignaltree(result, entiretree, onlysignal = FALSE)
+plot(signaltree)
+```
+
+## Appendix 1: Category of arguments in `tbss` fucntion
+
+**[Input]** </br>
+- prmstatus: value indicating the existence of a parameter file (default: 0)</br>
+- location: path with a .prm file (if prmstatus = 1) or path with .cas and .tre files (if prmstatus = 0) </br>
+- filename: parameter file name (if prmstatus = 1) </br>
+- cas: count data file name</br>
+- tre: tree structure file name</br>
+</br>
+**[Analysis]**</br>
+- scan: scan type (TREEONLY=0, TREETIME=1, TIMEONLY=2)</br>
+- model: probability model type (POISSON=0, BERNOULLI=1, UNIFORM=2, Not-Applicable=3)</br>
+- conditional: conditional type (UNCONDITIONAL=0, TOTALCASES=1, NODE=2, NODEANDTIME=3)</br>
+- self: self control design - unconditional Bernoulli only (y/n)</br>
+- prob: case probability (default: 1/2)</br>
+- start: start data time range (window-start-range) </br>
+- end: end data time range (window-end-range)</br>
+- period: data time range</br>
+</br>
+**[Output]**</br>
+- filename: results file name (if prmstatus = 0) </br>
+- csv/html/llr: create CSV/HTML/LLR results (y/n)</br>
+
+## Appendix 2: Custom tree structure visualization options
+By setting options, users can change the color and shape of the node, the font type, and the thickness of the edge in different styles.
+
+```{r, echo=FALSE, message = FALSE}
+result <- tbss(prmstatus = "y", location = loc, filename = "Bernoulli")
+entiretree <- maketree(tree)
+```
+
+```{r, fig.width=7}
+onlysignaltree <- makeSignaltree(result, entiretree, onlysignal = T, signalcolor = "darkolivegreen4")
+plot(onlysignaltree)
+
+SetNodeStyle(onlysignaltree$Node6$Node3, fillcolor = "goldenrod2", penwidth = "5px")
+plot(onlysignaltree)
+```
+<br/><br/>
+In the `makeSignaltree()`, you can change the color of the node using the fillcolor option, and the thickness of the edge with the penwidth option as shown above. It is also possible to change color only for certain nodes. </br></br>
+Please refer to the following link for more options.</br>
+https://cran.r-project.org/web/packages/data.tree/vignettes/data.tree.html
+
+```{r, echo = FALSE, include = FALSE}
+#clean up!
+#file.remove(paste0(loc,"/Bernoulli.txt"))
+#file.remove(paste0(loc,"/Poisson.txt"))
+#file.remove(paste0(loc,"/Poisson.html"))
+#file.remove(paste0(loc,"/TreeTemporal.txt"))
+#file.remove(paste0(loc,"/PV.txt"))
+```
