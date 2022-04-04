@@ -17,6 +17,14 @@
 
 treescan <- function(prmlocation, prmfilename, tslocation = "c:/Program Files/TreeScan", tsbatchfilename = "treescan64", cleanup = TRUE, verbose = FALSE) {
 
+  if(!exists('tsenv')){
+    tsenv <<- new.env(parent = emptyenv())
+    prm <- readLines("https://raw.githubusercontent.com/rtreescan/rtreescan/master/default.prm")
+    
+    tsenv$.ts.params.defaults <- prm
+    tsenv$.ts.params <- prm
+  }
+  
   stripslash <- function(string) {
     laststr <- tail(unlist(strsplit(string, "")), 1)
     return(ifelse(laststr == "/", substr(string, 1, nchar(string) - 1), string))
