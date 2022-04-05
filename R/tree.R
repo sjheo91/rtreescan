@@ -287,11 +287,11 @@ makeSignaltree <- function(result, entiretree, pv = 0.05, onlysignal = TRUE, fil
 
 maketree1 <- function(tree = tree, fillcolor = "lightgrey") {
   
-  if (!requireNamespace("collapsibleTree")){
-    install.packages("collapsibleTree")
-  }
+  #if (!requireNamespace("collapsibleTree")){
+  #  install.packages("collapsibleTree")
+  #}
   
-  library(collapsibleTree)
+  #library(collapsibleTree)
   
   tree[,2][which(tree[,2] == '')] <- NA
   tree <- tree[c(2,1)]
