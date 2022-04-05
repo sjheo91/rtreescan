@@ -9,7 +9,7 @@ Authors@R: c(
     person("Sujee", "Lee", email = "LEEVERDA@yuhs.ac", role = "aut"),
     person("Inkyung", "Jung", email = "IJUNG@yuhs.ac", role = "aut"))
 Depends: R (>= 3.5.0)
-Imports: utils, foreign, data.tree, DiagrammeR, dplyr, rmarkdown
+Imports: utils, foreign, data.tree, DiagrammeR, dplyr, rmarkdown, collapsibleTree
 Suggests: knitr
 License: GPL-3
 Encoding: UTF-8
