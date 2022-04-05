@@ -322,11 +322,11 @@ maketree1 <- function(tree = tree, fillcolor = "lightgrey") {
 makeSignaltree1 <- function(result = result, tree = tree, 
                             fillcolor = "lightgrey", signalcolor = "Thistle") {
   
-  if (!requireNamespace("collapsibleTree")){
-    install.packages("collapsibleTree")
-  }
+  #if (!requireNamespace("collapsibleTree")){
+  #  install.packages("collapsibleTree")
+  #}
 
-  library(collapsibleTree)  
+  #library(collapsibleTree)  
   
   signal <- result$csv$Node.Identifier
   pvalue <- result$csv$P.value
