@@ -17,8 +17,8 @@
 #' @param N matching ratio
 #' @export
 
-ts_data <- function(data, AE_code, drug_code, case, control, lv_sep, model, condition, rate, match_vars, N, Start, End, match){
-  # library(stringr)
+ts_data <- function(data, AE_code, drug_code, case, control, lv_sep, model, condition, rate, match_vars, N, Start, End){
+  
   str_loc <- function(string, lv_sep){
     loc_all <- str_locate_all(string=string, pattern=lv_sep)
     str_loc_list <- list()
@@ -57,35 +57,7 @@ ts_data <- function(data, AE_code, drug_code, case, control, lv_sep, model, cond
     return(list(Tree=Tree, n=n))
   }
   
-  # Make a Tree temporal
-  tre_pros_temporal <- function(data, AE_code, drug_code, lv_sep){
-    n <- xtabs(~get(AE_code)+get(drug_code), data)
-    
-    node_list <- row.names(n)
-    lv_sep_loc <- str_loc(string=node_list, lv_sep=lv_sep)
-    
-    num_lv <- length(lv_sep_loc[[1]])+1
-    
-    for(i in 1:num_lv){
-      if(i!=1){
-        sep_node <- sapply(lv_sep_loc,"[[",num_lv-i+1)
-      }
-      if(i!=num_lv){
-        sep_parent <- sapply(lv_sep_loc,"[[",num_lv-i)
-      }
-      NodeID <- unique(if(i==1){node_list}else{substr(node_list, 1, sep_node-1)})
-      ParentID <- if(i==num_lv){rep("Root",length(NodeID))}else{substr(NodeID, 1, sep_parent-1)}
-      tr_tmp <- data.frame(NodeID, ParentID, stringsAsFactors=F)
-      if(i==1){
-        Tree <- tr_tmp
-      }else{
-        Tree <- rbind(Tree,tr_tmp)}
-    }
-    Tree <- rbind(Tree,c("Root",""))
-    return(list(Tree=Tree, n=n))
-  } 
   # Matching
-  # library(Matching)
   Bernoulli.Match <- function(case, control, data, drug_code, match_vars, N){
     
     sub <- data[data[,drug_code] %in% c(case,control),]
@@ -127,8 +99,7 @@ ts_data <- function(data, AE_code, drug_code, case, control, lv_sep, model, cond
     names(Count) <- c("NodeID","Cases","Controls")
     return(Count=Count)
   }
-  
-  # library(dplyr)
+
   timetemporal <- function(data, Start, End, drug_code, AE_code, case){
     data$Range <- data[,End] - data[,Start]
     dat <- data[data[drug_code] == case,] %>% add_count(get(AE_code), Range)
@@ -155,14 +126,8 @@ ts_data <- function(data, AE_code, drug_code, case, control, lv_sep, model, cond
     cou<-bern (n=tre$n)
   }
   
-  # unconditional Bernoulli without matching
-  if(model==1 & condition==0 & match == 0){
-    tre<-tre_pros (data=data[data[,drug_code] %in% c(case,control),], AE_code=AE_code, drug_code=drug_code, lv_sep=lv_sep)
-    cou<-bern (n=tre$n)
-  }
-  
-  # unconditional Bernoulli with matching
-  if(model==1 & condition==0 & match == 1){
+  # unconditional Bernoulli
+  if(model==1 & condition==0){
     Match.data <- Bernoulli.Match(case, control, data, drug_code, match_vars, N)$matched_data
     tre<-tre_pros (data=Match.data, AE_code=AE_code, drug_code=drug_code, lv_sep=lv_sep)
     cou<-bern (n=tre$n)
@@ -170,7 +135,7 @@ ts_data <- function(data, AE_code, drug_code, case, control, lv_sep, model, cond
   
   # tree-temporal
   if(model==2 & is.null(control)){
-    tre<-tre_pros_temporal(data=data[data[drug_code] == case,], AE_code=AE_code, drug_code=drug_code, lv_sep=lv_sep)
+    tre<-tre_pros (data=data[data[drug_code] == case,], AE_code=AE_code, drug_code=drug_code, lv_sep=lv_sep)
     cou <- timetemporal(data, Start, End, drug_code, AE_code, case)
   }
   
