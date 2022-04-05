@@ -18,7 +18,7 @@
 #' @export
 
 ts_data <- function(data, AE_code, drug_code, case, control, lv_sep, model, condition, rate, match_vars, N, Start, End, match){
-  library(stringr)
+  # library(stringr)
   str_loc <- function(string, lv_sep){
     loc_all <- str_locate_all(string=string, pattern=lv_sep)
     str_loc_list <- list()
@@ -85,7 +85,7 @@ ts_data <- function(data, AE_code, drug_code, case, control, lv_sep, model, cond
     return(list(Tree=Tree, n=n))
   } 
   # Matching
-  library(Matching)
+  # library(Matching)
   Bernoulli.Match <- function(case, control, data, drug_code, match_vars, N){
     
     sub <- data[data[,drug_code] %in% c(case,control),]
@@ -128,7 +128,7 @@ ts_data <- function(data, AE_code, drug_code, case, control, lv_sep, model, cond
     return(Count=Count)
   }
   
-  library(dplyr)
+  # library(dplyr)
   timetemporal <- function(data, Start, End, drug_code, AE_code, case){
     data$Range <- data[,End] - data[,Start]
     dat <- data[data[drug_code] == case,] %>% add_count(get(AE_code), Range)
